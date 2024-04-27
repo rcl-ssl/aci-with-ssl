@@ -1,0 +1,66 @@
+api-version: 2019-12-01
+location: westus
+name: app-with-ssl
+properties:
+  containers:
+  - name: nginx
+    properties:
+      image: mcr.microsoft.com/oss/nginx/nginx:1.15.5-alpine
+      ports:
+      - port: 443
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+      volumeMounts:
+      - name: nginx-config
+        mountPath: /etc/nginx/conf.d/default.conf
+      - name: rclssl-certs
+        mountPath: /etc/ssl/rcl
+  - name: rcl-ssl-dns-autorenew
+    properties:
+      image: rclssl/dns-autorenew:7.1.0
+      environmentVariables:
+        - name: RCLSDK__ClientId
+          value: your-client-id
+        - name: RCLSDK__ClientSecret
+          value: your-client-secret
+        - name: RCLSDK__TenantId
+          value: your-tenant-id
+        - name: RCLSDK__SubscriptionId
+          value: your-subscription-id
+        - name: CertificateBot__SaveCertificatePath
+          value: /etc/ssl/rcl
+        - name: CertificateBot__IncludeCertificatesArray
+          value: example.com
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+      volumeMounts:
+      - name: rclssl-certs
+        mountPath: /etc/ssl/rcl  
+  - name: my-app
+    properties:
+      image: mcr.microsoft.com/azuredocs/aci-helloworld
+      ports:
+      - port: 80
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+  volumes:
+  - mountPath: ./nginx.conf
+    name: nginx-config
+  - mountPath: /etc/ssl/rcl
+    name: rclssl-certs
+  ipAddress:
+    ports:
+    - port: 443
+      protocol: TCP
+    type: Public
+  osType: Linux
+tags: null
+type: Microsoft.ContainerInstance/containerGroups
