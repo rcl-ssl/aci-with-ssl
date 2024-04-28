@@ -15,7 +15,7 @@ properties:
           memoryInGB: 1.5
       volumeMounts:
       - name: nginx-config
-        mountPath: /etc/nginx/conf.d/default.conf
+        mountPath: /etc/nginx/conf.d
       - name: rclssl-certs
         mountPath: /etc/ssl/rcl
   - name: rcl-ssl-dns-autorenew
@@ -33,7 +33,7 @@ properties:
         - name: CertificateBot__SaveCertificatePath
           value: /etc/ssl/rcl
         - name: CertificateBot__IncludeCertificatesArray
-          value: example.com
+          value: myaci.example.com
       resources:
         requests:
           cpu: 1.0
@@ -52,11 +52,18 @@ properties:
           cpu: 1.0
           memoryInGB: 1.5
   volumes:
-  - mountPath: ./nginx.conf
-    name: nginx-config
-  - mountPath: /etc/ssl/rcl
-    name: rclssl-certs
+  - name: nginx-config
+    azureFile:
+      sharename: nginx
+      storageAccountName: your-storage-account-name
+      storageAccountKey: your-storage-account-key
+  - name: rclssl-certs
+    azureFile:
+      sharename: ssl
+      storageAccountName: your-storage-account-name
+      storageAccountKey: your-storage-account-key
   ipAddress:
+    dnsNameLabel: myaci
     ports:
     - port: 443
       protocol: TCP
